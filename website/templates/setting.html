@@ -1,0 +1,71 @@
+{% extends "base2.html" %} {% block title %}Setting{% endblock %} {% block
+content %}
+<link rel="stylesheet" href="/static/table_style.css"/>
+<form method="POST" xmlns="http://www.w3.org/1999/html">
+  <h3 align="center">Closure Date Setting</h3>
+
+   <div class="form-group">
+    <label for="start_d">Add New Start Date</label>
+    <input
+      type="date"
+      class="form-control"
+      id="start_d"
+      name="start_d"
+      required
+      placeholder="Enter Start Date"
+    />
+<br />
+    <div class="form-group">
+    <label for="new_closure_d">Add New Closure Date</label>
+    <input
+      type="date"
+      class="form-control"
+      id="new_closure_d"
+      name="new_closure_d"
+      required
+      placeholder="Enter Closure Date"
+    />
+
+  </div>
+  <br />
+    <div class="form-group">
+    <label for="final_closure_d">Add Final Closure Date</label>
+    <input
+      type="date"
+      class="form-control"
+      id="final_closure_d"
+      name="final_closure_d"
+      required
+      placeholder="Enter Final Closure Date"
+    />
+
+  </div>
+  <button type="submit" class="btn btn-primary">Save</button>
+
+  <table class="table">
+  <thead>
+    <tr class="table__header">
+      <th class="table__cell">Admin Name</th>
+      <th class="table__cell">Start Date</th>
+      <th class="table__cell">Closure Date</th>
+      <th class="table__cell">Final Closure Date</th>
+      <th class="table__cell">Saved Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for setting in settings %}
+  <tr>
+    <td>{{ setting.admin.name }}</td>
+    <td>{{ setting.start_date.strftime("%Y-%m-%d") }}</td>
+    <td>{{ setting.closure_date.strftime("%Y-%m-%d") }}</td>
+    <td>{{ setting.final_date.strftime("%Y-%m-%d") }}</td>
+    <td>{{ setting.saved_date.strftime("%Y-%m-%d") }}</td>
+  </tr>
+{% endfor %}
+
+  </tbody>
+</table>
+
+
+</form>
+{% endblock %}

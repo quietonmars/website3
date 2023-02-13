@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<h1 align="center">Ideas</h1>
+<ul class="list-group list-group-flush" id="ideas">
+  {% for idea in user.ideas %}
+  <li class="list-group-item">{{ idea.data }}</li>
+  {% endfor %}
+</ul>
+<link rel="stylesheet" href="/static/table_style.css"/>
+<form method="POST" xmlns="http://www.w3.org/1999/html" class="form-control">
+
+
+
+
+</form>
+{% endblock %}

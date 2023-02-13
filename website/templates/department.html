@@ -1,0 +1,44 @@
+{% extends "base2.html" %} {% block title %}Department{% endblock %} {% block
+content %}
+<link rel="stylesheet" href="/static/table_style.css"/>
+<form method="POST" xmlns="http://www.w3.org/1999/html">
+  <h3 align="center">Department</h3>
+
+
+    <div class="form-group">
+    <label for="newdept">Add New Department</label>
+    <input
+      type="newdept"
+      class="form-control"
+      id="newdept"
+      name="newdept"
+      placeholder="Enter Department Name"
+    />
+
+  </div>
+  <button type="submit" class="btn btn-primary">Add New Department</button>
+
+<table class="table">
+  <thead>
+    <tr class="table__header">
+      <th class="table__cell">Department Name</th>
+      <th class="table__cell">Number of Ideas</th>
+      <th class="table__cell">Percentage of Ideas by Department</th>
+      <th class="table__cell">Number of Contributors</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for department in departments %}
+  <tr class="table__row">
+    <td class="table__cell">{{ department.name }}</td>
+    <td class="table__cell">{{ department_idea_count[department.name] }}</td>
+    <td class="table__cell">{{ department_idea_percentage[department.name] }}%</td>
+    <td class="table__cell">{{ department_staff_count[department.name] }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+
+</table>
+
+</form>
+{% endblock %}

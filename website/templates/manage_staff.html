@@ -1,0 +1,38 @@
+{% extends "base2.html" %} {% block title %}Manage Staff{% endblock %} {% block
+content %}
+<link rel="stylesheet" href="/static/table_style.css"/>
+<form method="POST" xmlns="http://www.w3.org/1999/html">
+  <h3 align="center">Manage Staff</h3>
+
+<table class="table">
+  <thead>
+    <tr class="table__header">
+      <th class="table__cell">ID</th>
+      <th class="table__cell">Name</th>
+      <th class="table__cell">Department</th>
+      <th class="table__cell">NRC</th>
+      <th class="table__cell">Role</th>
+      <th class="table__cell">Email</th>
+      <th class="table__cell">Phone Number</th>
+      <th class="table__cell">Address</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for staff in staffs %}
+      <tr>
+        <td class="table__cell">{{ staff.id }}</td>
+        <td class="table__cell">{{ staff.name }}</td>
+        <td class="table__cell">{{ staff.department }}</td>
+        <td class="table__cell">{{ staff.nrc }}</td>
+        <td class="table__cell">{{ staff.role }}</td>
+        <td class="table__cell">{{ staff.email }}</td>
+        <td class="table__cell">{{ staff.phone_no }}</td>
+        <td class="table__cell">{{ staff.address }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+</form>
+{% endblock %}

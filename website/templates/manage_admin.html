@@ -1,0 +1,39 @@
+{% extends "base2.html" %} {% block title %}Manage Admin{% endblock %} {% block
+content %}
+<link rel="stylesheet" href="/static/table_style.css"/>
+<form method="POST" xmlns="http://www.w3.org/1999/html">
+  <h3 align="center">Manage Admin</h3>
+<table class="table">
+  <thead>
+    <tr class="table__header">
+      <th class="table__cell">ID</th>
+      <th class="table__cell">Name</th>
+      <th class="table__cell">NRC</th>
+      <th class="table__cell">Type</th>
+      <th class="table__cell">Email</th>
+      <th class="table__cell">Phone No.</th>
+      <th class="table__cell">Address</th>
+      <th class="table__cell">Username</th>
+      <th class="table__cell">Password</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for admin in admins %}
+      <tr class="table__row">
+        <td class="table__cell">{{ admin.id }}</td>
+        <td class="table__cell">{{ admin.name }}</td>
+        <td class="table__cell">{{ admin.nrc }}</td>
+        <td class="table__cell">{{ admin.type }}</td>
+        <td class="table__cell">{{ admin.email }}</td>
+        <td class="table__cell">{{ admin.phone_no }}</td>
+        <td class="table__cell">{{ admin.address }}</td>
+        <td class="table__cell">{{ admin.username }}</td>
+        <td class="table__cell">*******</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="{{ url_for('auth.new_admin') }}" class="login">Add New Admin</a>
+</form>
+{% endblock %}

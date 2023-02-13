@@ -1,0 +1,58 @@
+{% extends "base2.html" %} {% block title %}Reports{% endblock %} {% block
+content %}
+<link rel="stylesheet" href="/static/table_style.css"/>
+<form method="POST" xmlns="http://www.w3.org/1999/html">
+  <h3 align="center">Manage Ideas Report</h3>
+
+      <div>
+      <label for="dpt">Closure Date</label>
+    <select
+            type="dpt"
+            class="form-control"
+            id="dpt"
+            name="dpt">
+          <option value="" disabled selected>Select Closure Date</option>
+    </select>
+    </div>
+<br />
+
+<div class="form-group">
+    <label>Start Date:</label>
+
+  <br />
+    <label>Closure Date:</label>
+
+  <br />
+    <label>Final Closure Date:</label>
+
+<br />
+  </div>
+
+  <table class="table">
+
+    <tr class="table__header">
+      {% for header in report_header %}
+      <th class="table__cell">{{ header }}</th>
+      {% endfor %}
+    </tr>
+    {% for row in report_value %}
+    <tr class="table__row">
+      {% for cell in row %}
+        <td class="table__cell">{{ cell }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+
+
+  </table>
+<br />
+  <label>**Anonymous posts will also be shown</label>
+<br />
+  <br />
+    <u>Exceptional Reports</u>
+<br />
+  <a href="{{ url_for('auth.login') }}" class="login">Download Ideas WITHOUT Comment**</a>
+  <br />
+  <a href="{{ url_for('auth.login') }}" class="login">Download Anonymous Ideas and Comments**</a>
+</form>
+{% endblock %}

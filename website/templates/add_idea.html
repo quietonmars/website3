@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Add Idea{% endblock %}
+
+{% block content %}
+
+<form method="POST"">
+  <h3 align="center">Add Ideas</h3>
+  <div class="form-group">
+    <label for="title">Idea Name</label>
+    <input
+      type="title"
+      class="form-control"
+      id="title"
+      name="title"
+      placeholder="Enter the title of your Idea"
+    />
+
+      <br />
+
+  <div class="form-group">
+    <label for="desc">Description</label>
+    <textarea
+      type="desc"
+      class="form-control"
+      id="desc"
+      name="desc"
+      placeholder="Enter Description"></textarea>
+  </div>
+
+    <div>
+      <label for="cat">Category</label>
+    <select
+            type="cat"
+            class="form-control"
+            id="cat"
+            name="cat">
+          <option value="" disabled selected>Select Category</option>
+        {% for row in categories %}
+        <option value='{{row.id}}'>{{row.name}}</option>
+        {% endfor %}
+
+    </select>
+    </div>
+
+      <br />
+
+   <div>
+      <label for="file">Add Documents/Pictures</label>
+    <input
+            class="form-control"
+            id="file"
+            name="file"
+            type="file">
+    </div>
+
+    <div>
+
+        <br />
+      <label for="anon">Anonymous Post</label>
+    <input
+            class="form-container"
+            id="anon"
+            name="anon"
+            type="checkbox">
+    </div>
+
+       <div>
+
+        <br />
+      <label for="tnc">I agree to the Terms and Conditions</label>
+    <input
+            class="form-container"
+            id="tnc"
+            name="tnc"
+            type="checkbox">
+    </div>
+
+
+  <br />
+  <button type="submit" class="btn btn-primary">Post Idea</button>
+  <a href="{{ url_for('views.home') }}" class="sign-up">Back</a>
+</form>
+
+{% endblock %}
