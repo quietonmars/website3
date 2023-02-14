@@ -14,16 +14,16 @@ from .models import Staff, Category, Admin, Settings, Department, Ideas, Departm
 from collections import defaultdict
 
 
-conn = sqlite3.connect('database.db')
-# conn.execute("PRAGMA busy_timeout = 5000")
+conn = sqlite3.connect('././instance/database.db',check_same_thread=False)
+conn.execute("PRAGMA busy_timeout = 5000")
 
 auth = Blueprint('auth', __name__)
 
 conn.row_factory = sqlite3.Row
 
 
-# engine = create_engine('sqlite:///database.db')
-# conn = engine.connect()
+engine = create_engine('sqlite:///database.db')
+conn = engine.connect()
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -291,17 +291,37 @@ def delete_category_confirmed(id):
 @auth.route('/department', methods=['GET', 'POST'])
 @login_required
 def department():
-    query = "SELECT department.name AS department, COUNT(ideas.id) AS Posts FROM department INNER JOIN staff ON " \
-            "department.id = staff.department INNER JOIN ideas ON staff.id = ideas.staff_idGROUP BY department.name "
+    # query = "SELECT department.name AS department, COUNT(ideas.id) AS Posts FROM department INNER JOIN staff ON " \
+    #         "department.id = staff.department INNER JOIN ideas ON staff.id = ideas.staff_id GROUP BY department.name "
+    departments = Department.query.all()
+    staffs = Staff.query.all()
 
-    result = conn.execute(query).fetchall()
-    print(result)
-    for row in result:
-        department = row[0]
-        posts = row[1]
-        print(f"Department: {department}, Posts: {posts}")
+    department_idea_count = {}
+    department_staff_count = {}
 
-    conn.close()
+    for department in departments:
+        department_idea_count[department.id] = 0
+        department_staff_count[department.id] = 0
+
+    for staff in staffs:
+        if staff.department in department_idea_count:
+            department_idea_count[staff.department] += len(staff.idea)
+            department_staff_count[staff.department] += 1
+    print(department_idea_count, department_staff_count)
+    total_idea_count = sum(department_idea_count.values())
+    department_idea_percentage = {}
+
+    for department, idea_count in department_idea_count.items():
+        department_idea_percentage[department] = round((idea_count / total_idea_count) * 100, 2)
+
+    # result = Department.query.all()
+    # print(result)
+    # for row in result:
+    #     department = row[0]
+    #     posts = row[1]
+    #     print(f"Department: {department}, Posts: {posts}")
+    #
+    # conn.close()
     if request.method == 'POST':
         Department_name = request.form.get('newdept')
         new_department = Department(name=Department_name)
@@ -310,7 +330,7 @@ def department():
         flash('New Department Added Successfully', category='success')
 
     # Render the template, passing in the required data
-    return render_template("department.html", user=current_user)
+    return render_template("department.html", user=current_user, departments=departments, department_idea_count=department_idea_count, department_idea_percentage=department_idea_percentage, department_staff_count=department_staff_count)
 
 
 report_header = (
