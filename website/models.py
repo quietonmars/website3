@@ -8,6 +8,19 @@ class Department(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150))
 
+class DepartmentInfo(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    department_name = db.Column(db.String(150))
+    number_of_ideas = db.Column(db.Integer, default=0)
+    percentage_of_ideas = db.Column(db.Float, default=0.0)
+    number_of_contributors = db.Column(db.Integer, default=0)
+
+    def add_idea(self):
+        self.number_of_ideas += 1
+
+    def update_percentage(self, total_ideas):
+        self.percentage_of_ideas = (self.number_of_ideas / total_ideas) * 100
+
 
 class Staff(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)

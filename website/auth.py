@@ -5,17 +5,25 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import DontWrapMixin
+
+
 from . import db
-from .models import Staff, Category, Admin, Settings, Department, Ideas
+from .models import Staff, Category, Admin, Settings, Department, Ideas, DepartmentInfo
 from collections import defaultdict
 
 
-conn = sqlite3.connect('example.db')
-conn.execute("PRAGMA busy_timeout = 5000")
+conn = sqlite3.connect('database.db')
+# conn.execute("PRAGMA busy_timeout = 5000")
 
 auth = Blueprint('auth', __name__)
 
+conn.row_factory = sqlite3.Row
 
+
+# engine = create_engine('sqlite:///database.db')
+# conn = engine.connect()
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -154,15 +162,27 @@ def add_idea():
         elif not tnc:
             flash('Please Agree to Terms and Conditions to Post Idea', category='error')
         else:
-
             new_idea = Ideas(staff_id=current_user.id, title=title, category=category, time=current_datetime,
                              description=description, document=file, anon=value, like=0, dislike=0,
                              view_count=0, comment_count=0)
             db.session.add(new_idea)
             db.session.commit()
+
+            department_name = Staff.query.filter_by(id=current_user.id).first().department
+            update_department_info(department_name)
             flash('Posted Idea Successfully', category='success')
 
+
     return render_template("add_idea.html", categories=categories, user=current_user)
+
+
+def update_department_info(department_name):
+    department = Department.query.filter_by(name=department_name).first()
+    department_info = DepartmentInfo.query.filter_by(department_name=department_name).first()
+    if department and department_info:
+        department_info.number_of_ideas += 1
+        db.session.commit()
+
 
 
 
@@ -271,27 +291,17 @@ def delete_category_confirmed(id):
 @auth.route('/department', methods=['GET', 'POST'])
 @login_required
 def department():
-    department_idea_count = defaultdict(int)
-    department_staff_count = defaultdict(int)
-    # Loop through each idea to count the number of ideas and staff in each department
-    ideas = Ideas.query.all()
-    for idea in ideas:
-        staff = Staff.query.get(idea.staff_id)
-        department_idea_count[staff.department] += 1
-        department_staff_count[staff.department] += 1
+    query = "SELECT department.name AS department, COUNT(ideas.id) AS Posts FROM department INNER JOIN staff ON " \
+            "department.id = staff.department INNER JOIN ideas ON staff.id = ideas.staff_idGROUP BY department.name "
 
-    # Calculate the total number of ideas
-    total_idea_count = sum(department_idea_count.values())
+    result = conn.execute(query).fetchall()
+    print(result)
+    for row in result:
+        department = row[0]
+        posts = row[1]
+        print(f"Department: {department}, Posts: {posts}")
 
-    # Calculate the percentage of ideas for each department
-    department_idea_percentage = {}
-    for department, idea_count in department_idea_count.items():
-        department_idea_percentage[department] = round((idea_count / total_idea_count) * 100, 2)
-
-    departments = Department.query.all()
-    staffs = Staff.query.all()
-
-
+    conn.close()
     if request.method == 'POST':
         Department_name = request.form.get('newdept')
         new_department = Department(name=Department_name)
@@ -300,10 +310,7 @@ def department():
         flash('New Department Added Successfully', category='success')
 
     # Render the template, passing in the required data
-    return render_template("department.html", departments=departments, staffs=staffs, ideas=ideas,
-                           department_idea_count=department_idea_count, department_staff_count=department_staff_count,
-                           total_idea_count=total_idea_count, department_idea_percentage=department_idea_percentage,
-                           user=current_user)
+    return render_template("department.html", user=current_user)
 
 
 report_header = (
