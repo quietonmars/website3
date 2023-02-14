@@ -10,7 +10,7 @@ from sqlalchemy.exc import DontWrapMixin
 
 
 from . import db
-from .models import Staff, Category, Admin, Settings, Department, Ideas, DepartmentInfo
+from .models import Staff, Category, Admin, Settings, Department, Ideas
 from collections import defaultdict
 
 
@@ -294,6 +294,7 @@ def department():
     # query = "SELECT department.name AS department, COUNT(ideas.id) AS Posts FROM department INNER JOIN staff ON " \
     #         "department.id = staff.department INNER JOIN ideas ON staff.id = ideas.staff_id GROUP BY department.name "
     departments = Department.query.all()
+
     staffs = Staff.query.all()
 
     department_idea_count = {}
@@ -301,18 +302,19 @@ def department():
 
     for department in departments:
         department_idea_count[department.id] = 0
-        department_staff_count[department.id] = 0
+        for staff in department.staff:
+            department_idea_count[department.id] += len(staff.idea)
+        department_staff_count[department.id] = len(department.staff)
 
-    for staff in staffs:
-        if staff.department in department_idea_count:
-            department_idea_count[staff.department] += len(staff.idea)
-            department_staff_count[staff.department] += 1
-    print(department_idea_count, department_staff_count)
+    print(department_staff_count, end="Staff count")
+
     total_idea_count = sum(department_idea_count.values())
     department_idea_percentage = {}
 
     for department, idea_count in department_idea_count.items():
-        department_idea_percentage[department] = round((idea_count / total_idea_count) * 100, 2)
+        department_idea_percentage[department]= 0
+        if total_idea_count != 0:
+            department_idea_percentage[department] = round((idea_count / total_idea_count) * 100, 2)
 
     # result = Department.query.all()
     # print(result)

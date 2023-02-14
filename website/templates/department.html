@@ -31,9 +31,9 @@ content %}
     {% for department in departments %}
   <tr class="table__row">
     <td class="table__cell">{{ department.name }}</td>
-    <td class="table__cell">{{ department_idea_count[department.name] }}</td>
-    <td class="table__cell">{{ department_idea_percentage[department.name] }}%</td>
-    <td class="table__cell">{{ department_staff_count[department.name] }}</td>
+    <td class="table__cell">{{ department_idea_count[department.id] }}</td>
+    <td class="table__cell">{{ department_idea_percentage[department.id] }}%</td>
+    <td class="table__cell">{{ department_staff_count[department.id] }}</td>
   </tr>
   {% endfor %}
   </tbody>
