@@ -122,10 +122,12 @@ def sign_up():
     return render_template("sign_up.html", departments=departments, user=current_user)
 
 
-@auth.route('/profile')
+@auth.route('/profile', methods=['GET','POST'])
 @login_required
 def profile():
-    return render_template("profile.html", user=current_user)
+    if request.method == 'POST':
+        user = Staff.query.filter_by(id=current_user.id).first()
+    return render_template("profile.html",user=current_user)
 
 
 @auth.route('/admin-home')
@@ -167,22 +169,10 @@ def add_idea():
                              view_count=0, comment_count=0)
             db.session.add(new_idea)
             db.session.commit()
-
-            department_name = Staff.query.filter_by(id=current_user.id).first().department
-            update_department_info(department_name)
             flash('Posted Idea Successfully', category='success')
 
 
     return render_template("add_idea.html", categories=categories, user=current_user)
-
-
-def update_department_info(department_name):
-    department = Department.query.filter_by(name=department_name).first()
-    department_info = DepartmentInfo.query.filter_by(department_name=department_name).first()
-    if department and department_info:
-        department_info.number_of_ideas += 1
-        db.session.commit()
-
 
 
 

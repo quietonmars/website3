@@ -1,110 +1,66 @@
-{% extends "base2.html" %} {% block title %}Add New Admin{% endblock %} {% block
-content %}
-<form method="POST" xmlns="http://www.w3.org/1999/html">
-  <h3 align="center">Add New Admin</h3>
+{% extends "base2.html" %}
+{% block title %}Add New Admin{% endblock %}
+{% block content %}
 
-    <div class="form-group">
-    <label for="name">Name</label>
-    <input
-      type="name"
-      class="form-control"
-      id="name"
-      name="name"
-      placeholder="Enter Name"
-    />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
 
-  </div>
-    <div class="form-group">
-    <label for="nrc">NRIC</label>
-    <input
-      type="nrc"
-      class="form-control"
-      id="nrc"
-      name="nrc"
-      placeholder="Enter NRIC"
-    />
+<body style="background-color: #222f3e; color: whitesmoke">
 
-    <div>
-      <label for="type">Admin Type</label>
-    <select
-            type="type"
-            class="form-control"
-            id="type"
-            name="type">
-          <option value=""  selected>Select Admin Type</option>
-          <option value="QAM"  selected>Quality Assurance Manager</option>
-          <option value="QAC"  selected>Quality Assurance Coordinator</option>
-
-    </select>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <h3 class="text-center mb-4">Add New Admin</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="name" class="form-control" id="name" name="name" placeholder="Enter Name">
+                </div>
+                <div class="form-group">
+                    <label for="nrc">NRIC</label>
+                    <input type="nrc" class="form-control" id="nrc" name="nrc" placeholder="Enter NRIC">
+                </div>
+                <div class="form-group">
+                    <label for="type">Admin Type</label>
+                    <select class="form-control" id="type" name="type">
+                        <option value="" selected>Select Admin Type</option>
+                        <option value="QAM">Quality Assurance Manager</option>
+                        <option value="QAC">Quality Assurance Coordinator</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter Phone Number">
+                </div>
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <textarea class="form-control" id="address" name="address" placeholder="Enter Address"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Enter Username">
+                </div>
+                <div class="form-group">
+                    <label for="password1">Password</label>
+                    <input type="password" class="form-control" id="password1" name="password1"
+                        placeholder="Enter password">
+                </div>
+                <div class="form-group">
+                    <label for="password2">Confirm Password</label>
+                    <input type="password" class="form-control" id="password2" name="password2"
+                        placeholder="Confirm password">
+                </div>
+                <br />
+                <button type="submit" class="btn btn-primary btn-block">Submit</button>
+            </form>
+            <br />
+        </div>
     </div>
-
-
-  </div>
-    <div class="form-group">
-    <label for="email">Email Address</label>
-    <input
-      type="email"
-      class="form-control"
-      id="email"
-      name="email"
-      placeholder="Enter Email"
-    />
-  </div>
-
-    <div class="form-group">
-    <label for="phone">Phone Number</label>
-    <input
-      type="tel"
-      class="form-control"
-      id="phone"
-      name="phone"
-      placeholder="Enter Phone Number"
-    />
-  </div>
-
-  <div class="form-group">
-    <label for="address">Address</label>
-    <textarea
-      type="address"
-      class="form-control"
-      id="address"
-      name="address"
-      placeholder="Enter Address"></textarea>
-  </div>
-
-  <div class="form-group">
-    <label for="username">Username</label>
-    <input
-      type="text"
-      class="form-control"
-      id="username"
-      name="username"
-      placeholder="Enter Username"
-    />
-  </div>
-
-  <div class="form-group">
-    <label for="password1">Password</label>
-    <input
-      type="password"
-      class="form-control"
-      id="password1"
-      name="password1"
-      placeholder="Enter password"
-    />
-  </div>
-  <div class="form-group">
-    <label for="password2">Confirm Password</label>
-    <input
-      type="password"
-      class="form-control"
-      id="password2"
-      name="password2"
-      placeholder="Confirm password"
-    />
-  </div>
-  <br />
-  <button type="submit" class="btn btn-primary">Submit</button>
-</form>
-  <br />
+</div>
+</body>
 {% endblock %}
