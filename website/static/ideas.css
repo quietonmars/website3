@@ -1,0 +1,84 @@
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+body {
+    color: white;
+}
+.form-control {
+    color: white;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px;
+}
+.box {
+  border: 1px solid #d3d3d3;
+  margin: 10px;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.box h2 {
+  font-size: 24px;
+  color: #333;
+}
+
+.box p {
+  font-size: 16px;
+  color: #666;
+}
+.idea-box {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    padding: 10px;
+}
+
+.box a {
+  color: #666;
+}
+
+.pagination {
+  margin-top: 20px;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="text"], textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.form-control {
+  margin: 20px 0;
+}

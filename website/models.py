@@ -37,6 +37,7 @@ class Staff(db.Model, UserMixin):
 class Category(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150))
+   # idea = db.relationship('Ideas', backref="category")
 
 
 class Admin(db.Model, UserMixin):
@@ -73,8 +74,9 @@ class Settings(db.Model, UserMixin):
 class Ideas(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     staff_id = db.Column(db.Integer, db.ForeignKey('staff.id'))
+    staff = db.relationship('Staff', backref='ideas')
     title = db.Column(db.String(150))
-    category = db.Column(db.String(150))
+    category = db.Column(db.Integer, db.ForeignKey('category.id'))
     time = db.Column(db.DateTime(timezone=True), default=func.now())
     description = db.Column(db.String(1000))
     document = db.Column(db.String(150), nullable=False)
@@ -85,6 +87,9 @@ class Ideas(db.Model, UserMixin):
     comment_count = db.Column(db.Integer)
     comment = db.relationship('Comments')
     like_dislike_count = db.relationship('Like')
+
+    #def _repr_(self):
+     #   return f'<Ideas "{self.title}" >'
 
 
 class Comments(db.Model, UserMixin):
@@ -100,4 +105,4 @@ class Like(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     idea_id = db.Column(db.Integer, db.ForeignKey('ideas.id'))
     staff_id = db.Column(db.Integer, db.ForeignKey('staff.id'))
-    like_dislike = db.Column(db.Integer)
+    status = db.Column(db.Integer)

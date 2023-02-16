@@ -1,10 +1,35 @@
-{% extends "base2.html" %} {% block title %}Admin Home{% endblock %} {% block
-content %}
-<link rel="stylesheet" href="/static/table_style.css"/>
-<form method="POST" xmlns="http://www.w3.org/1999/html">
-  <h3 align="center">View Ideas Admin</h3>
+{% extends "base2.html" %}
+{% block title %}Admin Home{% endblock %}
+{% block content %}
+
+<h1 align="center">View Ideas Admin</h1>
+<link rel="stylesheet" href="/static/ideas.css"/>
+    <form method="POST">
+      {% for idea in ideas.items %}
+<div class="idea-box">
+  <h2>{{ idea.title }}</h2>
+  <p>{{ idea.description }}</p>
+  <p>Category: {{ categories[idea.category] }}</p>
+  <p>Department: {{ departments[idea.staff.department] }}</p>
+  <p>Time: {{ idea.time.strftime('%Y-%b-%d %I:%M %p') }}</p>
+  <p>Document: <a href="{{ url_for('views.home', filename=idea.document) }}">{{ idea.document }}</a></p>
+  <p>Views: {{ idea.view_count }}</p>
+  <p>Comments: {{ idea.comment_count }}</p>
+  <p>Posted by: {% if idea.anon %}Anonymous{% else %}{{ idea.staff.name }}{% endif %}</p>
+  <br>
+</div>
+{% endfor %}
 
 
 
-</form>
+
+
+    </form>
+    {% if ideas.has_prev %}
+    <a href="{{ url_for('auth.admin_home', page=ideas.prev_num) }}" class="btn btn-primary">Previous</a>
+    {% endif %}
+    <span class="pagination-info">{{ ideas.page }} of {{ ideas.pages }}</span>
+    {% if ideas.has_next %}
+    <a href="{{ url_for('auth.admin_home', page=ideas.next_num) }}" class="btn btn-primary">Next</a>
+    {% endif %}
 {% endblock %}

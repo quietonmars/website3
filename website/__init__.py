@@ -17,11 +17,11 @@ def create_app():
     app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
 
-    UPLOAD_FOLDER = 'static/uploads/'
-    app.secret_key = "secret key"
-    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-    ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif', 'docx', 'csv', 'xlsx'])
+    # UPLOAD_FOLDER = 'static/uploads/'
+    # app.secret_key = "secret key"
+    # app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    # app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+    # ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif', 'docx', 'csv', 'xlsx'])
 
 
     db.init_app(app)
