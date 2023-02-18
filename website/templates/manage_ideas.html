@@ -8,45 +8,49 @@
 <body style="background-color: #222f3e; color: whitesmoke">
 <div class="container mt-5">
     <h3 class="text-center mb-4">Manage Ideas Report</h3>
-    <form method="POST">
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label for="dpt">Closure Date</label>
-                <select class="form-select" id="dpt" name="dpt">
-                    <option value="" disabled selected>Select Closure Date</option>
-                </select>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label>Start Date:</label>
-                <input type="date" class="form-control" name="start_date">
-            </div>
-            <div class="col-md-6 mb-3">
-                <label>Closure Date:</label>
-                <input type="date" class="form-control" name="closure_date">
-            </div>
-            <div class="col-md-6 mb-3">
-                <label>Final Closure Date:</label>
-                <input type="date" class="form-control" name="final_closure_date">
-            </div>
-        </div>
+    <form method="GET" action="{{ url_for('auth.manage_ideas') }}">
+       <label for="date-range">Date Range</label>
+<select class="form-select" id="date-range" name="date_range">
+    <option value="">Select Date Range</option>
+    {% for settings in settings %}
+    <option value="{{ settings.start_date.strftime('%Y-%b-%d') }} - {{ settings.closure_date.strftime('%Y-%b-%d') }}">
+        {{ settings.start_date.strftime('%Y-%b-%d') }} - {{ settings.closure_date.strftime('%Y-%b-%d') }}
+    </option>
+    {% endfor %}
+</select>
 
-        <table class="table">
-            <thead>
-                <tr class="table-dark">
-                    {% for header in report_header %}
-                    <th class="text-center">{{ header }}</th>
-                    {% endfor %}
+        <br>
+    <button type="submit" class="btn btn-primary">Filter</button>
+
+        <table class="table table-striped" style="background-color: #c8d6e5">
+            <thead >
+                <tr>
+                    <th>Idea No#</th>
+                    <th>Posted By</th>
+                    <th>ID</th>
+                    <th>Idea Title</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Document</th>
+                    <th>Department</th>
+                    <th>Posted Date</th>
                 </tr>
             </thead>
 
             <tbody>
-                {% for row in report_value %}
-                <tr style="color:white">
-                    {% for cell in row %}
-                    <td>{{ cell }}</td>
-                    {% endfor %}
+            {% for idea in ideas %}
+                <tr>
+                    <td>{{ idea.title }}</td>
+                    <td>{{ idea.staff.name }}</td>
+                    <td>{{ idea.staff.nrc }}</td>
+                    <td>{{ idea.title }}</td>
+                    <td>{{ idea.description }}</td>
+                    <td>{{ categories[idea.category] }}</td>
+                    <td>{{ idea.document }}</td>
+                    <td>{{ departments[idea.staff.department] }}</td>
+                    <td>{{ idea.time.strftime('%Y-%b-%d<br>%I:%M %p')|safe }}</td>
                 </tr>
-                {% endfor %}
+            {% endfor %}
             </tbody>
         </table>
 

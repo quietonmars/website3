@@ -6,20 +6,24 @@
 <link rel="stylesheet" href="/static/ideas.css"/>
     <form method="POST">
       {% for idea in ideas.items %}
-<div class="idea-box">
-  <h2>{{ idea.title }}</h2>
+
+<div class="idea-box" id="idea-{{ idea.id }}" >
+  <a href="{{ url_for('auth.idea_detail', idea_id=idea.id) }}"><h2>{{ idea.title }}</h2></a>
   <p>{{ idea.description }}</p>
   <p>Category: {{ categories[idea.category] }}</p>
   <p>Department: {{ departments[idea.staff.department] }}</p>
   <p>Time: {{ idea.time.strftime('%Y-%b-%d %I:%M %p') }}</p>
   <p>Document: <a href="{{ url_for('views.home', filename=idea.document) }}">{{ idea.document }}</a></p>
   <p>
-    <button type="button" class="btn btn-primary">{{ idea.like }} Like</button>
-    <button type="button" class="btn btn-primary">{{ idea.dislike }} Dislike</button>
+      <input type="hidden" name="idea_id" value="{{ idea.id }}">
+      <button type="submit" class="btn btn-primary like-button">
+      {{ idea.like }} Like
+  </button>
+
+    <button type="button" class="btn btn-primary dislike-button" data-idea-id="{{ idea.id }}" id="dislike-btn-{{ idea.id }}">
+      {{ idea.dislike }} Dislike
+    </button>
   </p>
-  <p>Views: {{ idea.view_count }}</p>
-  <p>Comments: {{ idea.comment_count }}</p>
-  <p>Posted by: {% if idea.anon %}Anonymous{% else %}{{ idea.staff.name }}{% endif %}</p>
   <br>
 </div>
 {% endfor %}

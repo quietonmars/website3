@@ -48,7 +48,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for setting in settings %}
+            {% for setting in settings|sort(attribute='saved_date', reverse=true) %}
             <tr>
                 <td>{{ setting.admin.name }}</td>
                 <td>{{ setting.start_date.strftime("%Y-%m-%d") }}</td>

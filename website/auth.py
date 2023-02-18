@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_user, login_required, logout_user, current_user
@@ -343,28 +343,64 @@ def department():
     return render_template("department.html", user=current_user, departments=departments, department_idea_count=department_idea_count, department_idea_percentage=department_idea_percentage, department_staff_count=department_staff_count)
 
 
-report_header = (
-    "Idea No#", "Posted By", "ID", "Idea Title", "Description", "Category", "Document", "Department", "Date of Post")
-report_value = (
-    ("1", "John", "123a/t", "Toilet water not working", "the toilet water stops working", "Bug", "11.jpg", "BA",
-     "12.Feb.2022"),
-    ("2", "Tyler", "124b/t", "Laptop needs upgrade", "my laptop is old and need new one", "Enhancement", "aa.jpg",
-     "Developer", "15.July.2022")
-)
 
+from datetime import datetime, timedelta
 
 @auth.route('/manage-ideas')
 @login_required
 def manage_ideas():
-    return render_template("manage_ideas.html", report_value=report_value, report_header=report_header, user=current_user)
+    # Get the date input from the form
+    date_range = request.args.get('date_range')
 
+    # Parse the date range into start and closure dates
+    if date_range:
+        start_str, closure_str = date_range.split(' - ')
+        start_date = datetime.strptime(start_str, '%Y-%b-%d')
+        closure_date = datetime.strptime(closure_str, '%Y-%b-%d') + timedelta(days=1)  # add a day to closure date to include all events on that day
+    else:
+        start_date = datetime.min
+        closure_date = datetime.max
+
+    ideas = Ideas.query.filter(Ideas.time >= start_date, Ideas.time < closure_date).order_by(Ideas.time.desc())
+    settings = Settings.query.order_by(Settings.closure_date.desc())
+
+    categories = Category.query.all()
+    departments = Department.query.all()
+
+    category_list = {}
+    department_list = {}
+
+    for cat in categories:
+        category_list[cat.id] = cat.name
+
+    for dep in departments:
+        department_list[dep.id] = dep.name
+
+    return render_template("manage_ideas.html", settings=settings, ideas=ideas, user=current_user, categories=category_list, departments=department_list)
+
+
+@auth.route('/idea/<int:idea_id>')
+@login_required
+def idea_detail(idea_id):
+    idea = Ideas.query.get(idea_id)
+    categories = Category.query.all()
+    departments = Department.query.all()
+    category_list = {}
+    department_list = {}
+
+    for cat in categories:
+        category_list[cat.id] = cat.name
+
+    for dep in departments:
+        department_list[dep.id] = dep.name
+
+    return render_template("view_idea.html", user=current_user, idea=idea,categories=category_list, departments=department_list)
 
 
 @auth.route('/setting', methods=['GET', 'POST'])
 @login_required
 def setting():
-    q = Settings.query.all()
-    settings = q
+    settings = Settings.query.all()
 
     for setting in settings:
         setting.admin = Admin.query.get(setting.admin_id)
