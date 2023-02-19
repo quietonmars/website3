@@ -12,6 +12,8 @@ from sqlalchemy.exc import DontWrapMixin
 from . import db
 from .models import Staff, Category, Admin, Settings, Department, Ideas, Comments
 from collections import defaultdict
+from werkzeug.utils import secure_filename
+import os
 
 
 conn = sqlite3.connect('././instance/database.db',check_same_thread=False)
@@ -157,11 +159,25 @@ def add_idea():
     categories = q
 
     if request.method == 'POST':
+        
+        # Check File in request
+        print(request.files, end="request files")
+        uploaded_file = ""
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        else: 
+            file = request.files['file']
+            filename = secure_filename(file.filename)
+            file.save(os.path.join("website/static/uploads/", filename))
+            uploaded_file = file.filename
+            flash('File Uploaded')
+        
         title = request.form.get('title')
         description = request.form.get('desc')
         category = request.form.get('cat')
 
-        file = request.form.get('file')
+        file = uploaded_file
 
         anon = request.form.get('anon')
         tnc = request.form.get('tnc')
