@@ -106,3 +106,4 @@ class Like(db.Model, UserMixin):
     idea_id = db.Column(db.Integer, db.ForeignKey('ideas.id'))
     staff_id = db.Column(db.Integer, db.ForeignKey('staff.id'))
     status = db.Column(db.Integer)
+

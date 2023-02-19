@@ -10,7 +10,7 @@ from sqlalchemy.exc import DontWrapMixin
 
 
 from . import db
-from .models import Staff, Category, Admin, Settings, Department, Ideas
+from .models import Staff, Category, Admin, Settings, Department, Ideas, Comments
 from collections import defaultdict
 
 
@@ -379,7 +379,7 @@ def manage_ideas():
     return render_template("manage_ideas.html", settings=settings, ideas=ideas, user=current_user, categories=category_list, departments=department_list)
 
 
-@auth.route('/idea/<int:idea_id>')
+@auth.route('/idea/<int:idea_id>', methods=['GET', 'POST'])
 @login_required
 def idea_detail(idea_id):
     idea = Ideas.query.get(idea_id)
@@ -388,13 +388,34 @@ def idea_detail(idea_id):
     category_list = {}
     department_list = {}
 
+
+
+
     for cat in categories:
         category_list[cat.id] = cat.name
 
     for dep in departments:
         department_list[dep.id] = dep.name
 
-    return render_template("view_idea.html", user=current_user, idea=idea,categories=category_list, departments=department_list)
+    comments = Comments.query.filter_by(idea_id=idea_id).order_by(Comments.time.desc()).all()
+    for comment in comments:
+        comment.staff = Staff.query.get(comment.staff_id)
+
+    if request.method == 'POST':
+        description = request.form['comment']
+        anon = bool(request.form.get('anon'))
+        current_datetime = datetime.now()
+        # value = True if anon == 'on' else False
+        print(anon)
+        comment = Comments(idea_id=idea_id, staff_id=current_user.id,time=current_datetime, description=description, anon=anon)
+        db.session.add(comment)
+        db.session.commit()
+        flash('Comment Added Successfully', category='success')
+        idea.comment_count += 1
+        db.session.commit()
+        return redirect(url_for('auth.idea_detail', idea_id=idea_id))  # reload the page
+
+    return render_template("view_idea.html", comments=comments, user=current_user, idea=idea,categories=category_list, departments=department_list)
 
 
 @auth.route('/setting', methods=['GET', 'POST'])

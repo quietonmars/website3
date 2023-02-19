@@ -34,6 +34,25 @@ th, td {
     border-radius: 5px;
     margin-bottom: 20px;
     padding: 10px;
+
+}
+
+.comment-box {
+border: 1px solid #ccc;
+  background-color: #222f3e;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  color: white;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.button-wrapper {
+  display: flex;
+  gap: 10px;
+}
+
+textarea.form-control {
+  color: black;
 }
 
 .box a {

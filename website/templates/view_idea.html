@@ -23,17 +23,43 @@
           {{ idea.dislike }} Dislike
         </button>
       </p>
-      <div class="form-group">
+      <div class="idea-box">
+          <div class="form-group">
                     <label for="comment">Add Comment</label>
                     <textarea type="comment" class="form-control" id="comment" name="comment"
                         placeholder="Enter Comment"></textarea>
+          </div>
+
+          <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="anon" name="anon">
+                        <label class="form-check-label" for="anon">Anonymous Post</label>
+          </div>
+          <button type="submit" class="btn btn-primary mt-3">Post Comment</button>
       </div>
-      <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="anon" name="anon">
-                    <label class="form-check-label" for="anon">Anonymous Post</label>
-      </div>
-      <button type="submit" class="btn btn-primary mt-3">Post Comment</button>
-      <label> <br> Number of Comments: {{ idea.comment_count }}</label>
     </form>
+<br>
+<form method="POST">
+    <div class="idea-box">
+        <div class="comment-count">
+            <span style="display: inline-block">
+                <label>Number of Comments: {{ idea.comment_count }}</label>
+            </span>
+            <span style="display: inline-block; float: right">
+                <label>**Latest Comments sorted first**</label>
+            </span>
+        </div>
+    </div>
+
+    <div class="comment-box">
+        {% for comment in comments %}
+            <div class="comment-box">
+                <p>{{ comment.description }}</p>
+                <span style="display: inline-block"><p>Posted by: {% if comment.anon %}Anonymous{% else %}{{ comment.staff.name }}{% endif %}</p></span>
+                <span style="display: inline-block; float: right"><p>{{ comment.time.strftime('%Y-%b-%d %I:%M %p') }}</p></span>
+            </div>
+        {% endfor %}
+    </div>
+</form>
+
 
 {% endblock %}
