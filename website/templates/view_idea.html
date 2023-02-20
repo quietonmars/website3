@@ -9,7 +9,7 @@
   <p>Category: {{ categories[idea.category] }}</p>
   <p>Department: {{ departments[idea.staff.department] }}</p>
   <p>Time: {{ idea.time.strftime('%Y-%b-%d %I:%M %p') }}</p>
-  <p>Document: <a href="{{ url_for('views.home', filename=idea.document) }}">{{ idea.document }}</a></p>
+  <p>Document: <a href="/static/uploads/{{idea.document}}">{{ idea.document }}</a></p>
   <p>Views: {{ idea.view_count }}</p>
   <p>Posted by: {% if idea.anon %}Anonymous{% else %}{{ idea.staff.name }}{% endif %}</p>
 </div>

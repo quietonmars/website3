@@ -13,22 +13,37 @@
   <p>Category: {{ categories[idea.category] }}</p>
   <p>Department: {{ departments[idea.staff.department] }}</p>
   <p>Time: {{ idea.time.strftime('%Y-%b-%d %I:%M %p') }}</p>
-  <p>Document: <a href="static/uploads/{{idea.document}}">{{ idea.document }}</a></p>
+  <p>Document: <a href="/static/uploads/{{idea.document}}">{{ idea.document }}</a></p>
   <p>
     <div class="button-wrapper">
+
         <form method="POST">
             <input type="hidden" name="idea_id" value="{{ idea.id }}">
             <input type="hidden" name="status" value="1">
+            {% if like_list.get(idea.id) == current_user.id %}
             <button type="submit" class="btn btn-outline-primary like-button">
             {{ idea.like }} <i class="fa fa-thumbs-up" aria-hidden="true"></i>
             </button>
+            {% else %}
+            <button type="submit" class="btn btn-primary like-button">
+            {{ idea.like }} <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+            </button>
+            {% endif %}
         </form>
+
         <form method="POST">
             <input type="hidden" name="idea_id" value="{{ idea.id }}">
             <input type="hidden" name="status" value="-1">
+            {% if dislike_list.get(idea.id) == current_user.id %}
             <button type="submit" class="btn btn-outline-primary dislike-button">
             {{ idea.dislike }} <i class="fa fa-thumbs-down" aria-hidden="true"></i>
             </button>
+            {% else %}
+            <button type="submit" class="btn btn-primary dislike-button">
+            {{ idea.dislike }} <i class="fa fa-thumbs-down" aria-hidden="true"></i>
+            </button>
+            {% endif %}
+
         </form>
 
     </div>
