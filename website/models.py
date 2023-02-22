@@ -58,6 +58,7 @@ class Notifications(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'))
     staff_id = db.Column(db.Integer, db.ForeignKey('staff.id'))
+    # email =
     date = db.Column(db.DateTime(timezone=True), default=func.now())
     status = db.Column(db.String(30))
 

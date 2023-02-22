@@ -1,0 +1,43 @@
+{% extends "base2.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<h1 align="center">{{ idea.title }}</h1>
+<link rel="stylesheet" href="/static/ideas.css"/>
+    <form method="POST">
+<div class="idea-box">
+  <p>{{ idea.description }}</p>
+  <p>Category: {{ categories[idea.category] }}</p>
+  <p>Department: {{ departments[idea.staff.department] }}</p>
+  <p>Time: {{ idea.time.strftime('%Y-%b-%d %I:%M %p') }}</p>
+  <p>Document: <a href="/static/uploads/{{idea.document}}">{{ idea.document }}</a></p>
+  <p>Views: {{ idea.view_count }}</p>
+  <p>Posted by: {% if idea.anon %}Anonymous{% else %}{{ idea.staff.name }}{% endif %}</p>
+</div>
+
+    </form>
+<br>
+<form method="POST">
+    <div class="idea-box">
+        <div class="comment-count">
+            <span style="display: inline-block">
+                <label>Number of Comments: {{ idea.comment_count }}</label>
+            </span>
+            <span style="display: inline-block; float: right">
+                <label>**Latest Comments sorted first**</label>
+            </span>
+        </div>
+    </div>
+
+    <div class="comment-box">
+        {% for comment in comments %}
+            <div class="comment-box">
+                <p>{{ comment.description }}</p>
+                <span style="display: inline-block"><p>Posted by: {% if comment.anon %}Anonymous{% else %}{{ comment.staff.name }}{% endif %}</p></span>
+                <span style="display: inline-block; float: right"><p>{{ comment.time.strftime('%Y-%b-%d %I:%M %p') }}</p></span>
+            </div>
+        {% endfor %}
+    </div>
+</form>
+
+
+{% endblock %}

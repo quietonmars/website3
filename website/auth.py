@@ -8,21 +8,21 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import DontWrapMixin
 
-
 from . import db
-from .models import Staff, Category, Admin, Settings, Department, Ideas, Comments
+from .models import Staff, Category, Admin, Settings, Department, Ideas, Comments, Like
 from collections import defaultdict
 from werkzeug.utils import secure_filename
 import os
 
+import smtplib
+from email.message import EmailMessage
 
-conn = sqlite3.connect('././instance/database.db',check_same_thread=False)
+conn = sqlite3.connect('././instance/database.db', check_same_thread=False)
 conn.execute("PRAGMA busy_timeout = 5000")
 
 auth = Blueprint('auth', __name__)
 
 conn.row_factory = sqlite3.Row
-
 
 engine = create_engine('sqlite:///database.db')
 conn = engine.connect()
@@ -59,6 +59,7 @@ def admin_login():
             if check_password_hash(admin.password, password):
                 flash('Logged In Successfully!', category='success')
                 login_user(admin, remember=True)
+
                 return redirect(url_for('auth.admin_home'))
             else:
                 flash('Incorrect Password. Please try again.', category='error')
@@ -92,7 +93,7 @@ def sign_up():
         dpt = request.form.get('dpt')
         role = request.form.get('role')
         email = request.form.get('email')
-        phone_no = request.form.get('phone_no')
+        phone_no = request.form.get('phone')
         address = request.form.get('address')
         username = request.form.get('username')
         password1 = request.form.get('password1')
@@ -124,23 +125,31 @@ def sign_up():
     return render_template("sign_up.html", departments=departments, user=current_user)
 
 
-@auth.route('/profile', methods=['GET','POST'])
+@auth.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     if request.method == 'POST':
         user = Staff.query.filter_by(id=current_user.id).first()
-    return render_template("profile.html",user=current_user)
+    return render_template("profile.html", user=current_user)
 
 
 @auth.route('/admin-home', methods=['GET', 'POST'])
 @login_required
 def admin_home():
     page = request.args.get('page', 1, type=int)
-    ideas = Ideas.query.order_by(Ideas.time.desc()).paginate(page=page, per_page=5)
+    # ideas = Ideas.query.order_by(Ideas.time.desc()).paginate(page=page, per_page=5)
     categories = Category.query.all()
     departments = Department.query.all()
     category_list = {}
     department_list = {}
+
+    sort_option = request.args.get('sort', 'most_recent')
+    if sort_option == 'most_viewed':
+        ideas = Ideas.query.order_by(Ideas.view_count.desc()).paginate(page=page, per_page=5)
+    elif sort_option == 'most_liked':
+        ideas = Ideas.query.order_by(Ideas.like.desc()).paginate(page=page, per_page=5)
+    else:
+        ideas = Ideas.query.order_by(Ideas.time.desc()).paginate(page=page, per_page=5)
 
     for cat in categories:
         category_list[cat.id] = cat.name
@@ -158,21 +167,29 @@ def add_idea():
     q = Category.query.all()
     categories = q
 
+    latest_settings = Settings.query.order_by(Settings.saved_date.desc()).first()
+    latest_closure_date = latest_settings.closure_date
+    print(latest_closure_date)
+
     if request.method == 'POST':
-        
+
         # Check File in request
         print(request.files, end="request files")
         uploaded_file = ""
         if 'file' not in request.files:
             flash('No file part')
             return redirect(request.url)
-        else: 
-            file = request.files['file']
+
+        file = request.files['file']
+        if file.filename == '':
+            print('No file selected')
+        else:
             filename = secure_filename(file.filename)
+            filename = filename.replace('_', ' ')
             file.save(os.path.join("website/static/uploads/", filename))
             uploaded_file = file.filename
             flash('File Uploaded')
-        
+
         title = request.form.get('title')
         description = request.form.get('desc')
         category = request.form.get('cat')
@@ -194,16 +211,27 @@ def add_idea():
         elif not tnc:
             flash('Please Agree to Terms and Conditions to Post Idea', category='error')
         else:
-            new_idea = Ideas(staff_id=current_user.id, title=title, category=category, time=current_datetime,
-                             description=description, document=file, anon=value, like=0, dislike=0,
-                             view_count=0, comment_count=0)
-            db.session.add(new_idea)
-            db.session.commit()
-            flash('Posted Idea Successfully', category='success')
+            if latest_closure_date and datetime.now() > latest_closure_date:
+                flash('Cannot add new ideas. Current date is past the closure date', category='error')
+            else:
+                new_idea = Ideas(staff_id=current_user.id, title=title, category=category, time=current_datetime,
+                                 description=description, document=file, anon=value, like=0, dislike=0,
+                                 view_count=0, comment_count=0)
+                db.session.add(new_idea)
+                db.session.commit()
+                QAM = Admin.query.filter_by(type='QAM').first()
 
+                to = QAM.email
+                print(to)
+
+                subject = current_user.name + " posted an Idea"
+                body = "Hi " + QAM.name + "," + "\n\n\n" + current_user.name + " has posted an Idea. \n\n\n" + "Idea Title: " + title + "\n\n\n" + "Idea Description: " + description +"\n\n\n\n Best Regards, \n Sigma Team"
+                send_email(to, subject, body)
+                print(to, subject, body)
+
+                flash('Posted Idea Successfully', category='success')
 
     return render_template("add_idea.html", categories=categories, user=current_user)
-
 
 
 @auth.route('/add-new-admin', methods=['GET', 'POST'])
@@ -245,7 +273,6 @@ def new_admin():
     return render_template("new_admin.html", user=current_user)
 
 
-
 @auth.route('/manage-admin')
 @login_required
 def manage_admin():
@@ -255,8 +282,6 @@ def manage_admin():
     return render_template("manage_admin.html", admins=admins, user=current_user)
 
 
-
-
 @auth.route('/manage-staff')
 @login_required
 def manage_staff():
@@ -264,7 +289,6 @@ def manage_staff():
     staffs = q
 
     return render_template("manage_staff.html", staffs=staffs, user=current_user)
-
 
 
 @auth.route('/category', methods=['GET', 'POST'])
@@ -298,6 +322,7 @@ def delete_category(id):
         </script>
     """
 
+
 @auth.route('/delete_category/<int:id>/cancel')
 def delete_category_cancel(id):
     flash('Deletion canceled', category='info')
@@ -307,10 +332,18 @@ def delete_category_cancel(id):
 @auth.route('/delete_category/<int:id>/confirmed')
 def delete_category_confirmed(id):
     category = Category.query.get_or_404(id)
+
+    ideas_using_category = Ideas.query.filter_by(category=id).all()
+    if ideas_using_category:
+        flash('Cannot delete category, it is used in some ideas', category='error')
+        return redirect(url_for('auth.category'))
+
     db.session.delete(category)
     db.session.commit()
     flash('Category Deleted', category='success')
     return redirect(url_for('auth.category'))
+
+
 
 @auth.route('/department', methods=['GET', 'POST'])
 @login_required
@@ -336,7 +369,7 @@ def department():
     department_idea_percentage = {}
 
     for department, idea_count in department_idea_count.items():
-        department_idea_percentage[department]= 0
+        department_idea_percentage[department] = 0
         if total_idea_count != 0:
             department_idea_percentage[department] = round((idea_count / total_idea_count) * 100, 2)
 
@@ -356,11 +389,14 @@ def department():
         flash('New Department Added Successfully', category='success')
 
     # Render the template, passing in the required data
-    return render_template("department.html", user=current_user, departments=departments, department_idea_count=department_idea_count, department_idea_percentage=department_idea_percentage, department_staff_count=department_staff_count)
-
+    return render_template("department.html", user=current_user, departments=departments,
+                           department_idea_count=department_idea_count,
+                           department_idea_percentage=department_idea_percentage,
+                           department_staff_count=department_staff_count)
 
 
 from datetime import datetime, timedelta
+
 
 @auth.route('/manage-ideas')
 @login_required
@@ -372,7 +408,8 @@ def manage_ideas():
     if date_range:
         start_str, closure_str = date_range.split(' - ')
         start_date = datetime.strptime(start_str, '%Y-%b-%d')
-        closure_date = datetime.strptime(closure_str, '%Y-%b-%d') + timedelta(days=1)  # add a day to closure date to include all events on that day
+        closure_date = datetime.strptime(closure_str, '%Y-%b-%d') + timedelta(
+            days=1)  # add a day to closure date to include all events on that day
     else:
         start_date = datetime.min
         closure_date = datetime.max
@@ -392,7 +429,8 @@ def manage_ideas():
     for dep in departments:
         department_list[dep.id] = dep.name
 
-    return render_template("manage_ideas.html", settings=settings, ideas=ideas, user=current_user, categories=category_list, departments=department_list)
+    return render_template("manage_ideas.html", settings=settings, ideas=ideas, user=current_user,
+                           categories=category_list, departments=department_list)
 
 
 @auth.route('/idea/<int:idea_id>', methods=['GET', 'POST'])
@@ -404,8 +442,126 @@ def idea_detail(idea_id):
     category_list = {}
     department_list = {}
 
+    idea.view_count += 1
+    db.session.commit()
+
+    likes = Like.query.filter_by(status=1).all()
+    dislikes = Like.query.filter_by(status=-1).all()
+    like_list = {}
+    dislike_list = {}
+
+    latest_settings = Settings.query.order_by(Settings.saved_date.desc()).first()
+    latest_closure_date = latest_settings.final_date
+    print(latest_closure_date)
+
+    for lik in likes:
+        like_list[lik.idea_id] = lik.staff_id
+
+    for dislik in dislikes:
+        dislike_list[dislik.idea_id] = dislik.staff_id
+
+    for cat in categories:
+        category_list[cat.id] = cat.name
+
+    for dep in departments:
+        department_list[dep.id] = dep.name
+
+    comments = Comments.query.filter_by(idea_id=idea_id).order_by(Comments.time.desc()).all()
+    for comment in comments:
+        comment.staff = Staff.query.get(comment.staff_id)
+
+    if request.method == 'POST':
+        status = request.form.get('status')
+
+        if status == "1" or status == "-1":
+            idea_id = request.form['idea_id']
+            staff_id = current_user.id
+            idea = Ideas.query.get(idea_id)
+            like = Like.query.filter_by(idea_id=idea_id, staff_id=staff_id).first()
+            if like:
+                print('user already has liked or disliked idea')
+                if like.status == 1 and status == '1':
+                    print('The user has already liked the idea and clicks the like button again, so remove the like')
+                    idea.like -= 1
+                    db.session.delete(like)
+                    flash('Idea like removed', category='success')
+                elif like.status == -1 and status == '-1':
+                    print(
+                        'The user has already disliked the idea and clicks the dislike button again, so remove the dislike')
+                    idea.dislike -= 1
+                    db.session.delete(like)
+                    flash('Idea dislike removed', category='success')
+                elif like.status == 1 and status == '-1':
+                    print(
+                        'The user has already liked the idea and clicks the dislike button, so remove the like and add the dislike')
+                    idea.like -= 1
+                    idea.dislike += 1
+                    like.status = -1
+                    flash('Idea disliked successfully', category='success')
+                elif like.status == -1 and status == '1':
+                    print(
+                        'The user has already disliked the idea and clicks the like button, so remove the dislike and add the like')
+                    idea.dislike -= 1
+                    idea.like += 1
+                    like.status = 1
+                    flash('Idea liked successfully', category='success')
+            else:
+                print('no like no dislike')
+                if status == '1':
+                    print('like the idea')
+                    idea.like += 1
+                    like = Like(idea_id=idea_id, staff_id=staff_id, status=1)
+                    db.session.add(like)
+                    flash('Idea liked successfully', category='success')
+                elif status == '-1':
+                    print('dislike the idea')
+                    idea.dislike += 1
+                    like = Like(idea_id=idea_id, staff_id=staff_id, status=-1)
+                    db.session.add(like)
+                    flash('Idea disliked successfully', category='success')
+                else:
+                    flash('error', category='danger')
+
+            db.session.commit()
+            return redirect(url_for('auth.idea_detail', idea_id=idea_id))
+        else:
+            if latest_closure_date and datetime.now() > latest_closure_date:
+                flash('Cannot Add Comment. Current date is past the final closure date', category='error')
+            else:
+                print('comment')
+                description = request.form['comment']
+                anon = bool(request.form.get('anon'))
+                current_datetime = datetime.now()
+                # value = True if anon == 'on' else False
+                print(anon)
+                comment = Comments(idea_id=idea_id, staff_id=current_user.id, time=current_datetime,
+                                   description=description, anon=anon)
+                db.session.add(comment)
+                db.session.commit()
+                flash('Comment Added Successfully', category='success')
+                idea.comment_count += 1
+                db.session.commit()
+
+                to = idea.staff.email
+                subject = current_user.name + " commented on your post!"
+                body = "Hi " + idea.staff.name +",\n We would like to inform u that " + current_user.name + " has comment on your post.\n\n Comment:\n\n" + description +"\n \n Best Regards, \n Sigma Team"
+                send_email(to,subject,body)
+                print(to,subject,body)
+
+                return redirect(url_for('auth.idea_detail', idea_id=idea_id))  # reload the page
+
+    return render_template("view_idea.html", comments=comments, user=current_user, idea=idea, categories=category_list,
+                           departments=department_list, like_list=like_list, dislike_list=dislike_list)
 
 
+@auth.route('/idea_admin/<int:idea_id>', methods=['GET', 'POST'])
+@login_required
+def idea_detail_admin(idea_id):
+    idea = Ideas.query.get(idea_id)
+    categories = Category.query.all()
+    departments = Department.query.all()
+    category_list = {}
+    department_list = {}
 
     for cat in categories:
         category_list[cat.id] = cat.name
@@ -423,7 +579,8 @@ def idea_detail(idea_id):
         current_datetime = datetime.now()
         # value = True if anon == 'on' else False
         print(anon)
-        comment = Comments(idea_id=idea_id, staff_id=current_user.id,time=current_datetime, description=description, anon=anon)
+        comment = Comments(idea_id=idea_id, staff_id=current_user.id, time=current_datetime, description=description,
+                           anon=anon)
         db.session.add(comment)
         db.session.commit()
         flash('Comment Added Successfully', category='success')
@@ -431,7 +588,8 @@ def idea_detail(idea_id):
         db.session.commit()
         return redirect(url_for('auth.idea_detail', idea_id=idea_id))  # reload the page
 
-    return render_template("view_idea.html", comments=comments, user=current_user, idea=idea,categories=category_list, departments=department_list)
+    return render_template("view_idea_admin.html", comments=comments, user=current_user, idea=idea,
+                           categories=category_list, departments=department_list)
 
 
 @auth.route('/setting', methods=['GET', 'POST'])
@@ -451,9 +609,26 @@ def setting():
             flash('Start date must be earlier than the closure dates', category='error')
         else:
             new_setting = Settings(admin_id=current_user.id, start_date=s_date, closure_date=e_date, final_date=fc_date,
-                               saved_date=current_date)
+                                   saved_date=current_date)
             db.session.add(new_setting)
             db.session.commit()
             flash('Settings Saved Successfully', category='success')
 
     return render_template("setting.html", settings=settings, user=current_user)
+
+
+def send_email(to, subject, body):
+    # Create a new email message
+    msg = EmailMessage()
+    msg.set_content(body)
+    msg['To'] = to
+    msg['Subject'] = subject
+    msg['From'] = 'yangster24dawhla@gmail.com'
+
+    # Connect to the SMTP server and send the message
+    with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.ehlo()
+        smtp.login('yangster24dawhla@gmail.com', 'kimungscuzlobuff')
+        smtp.send_message(msg)

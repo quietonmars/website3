@@ -12,16 +12,25 @@ views = Blueprint('views', __name__)
 @login_required
 def home():
     page = request.args.get('page', 1, type=int)
-    ideas = Ideas.query.order_by(Ideas.time.desc()).paginate(page=page, per_page=5)
+    # ideas = Ideas.query.order_by(Ideas.time.desc()).paginate(page=page, per_page=5)
     categories = Category.query.all()
     departments = Department.query.all()
     category_list = {}
     department_list = {}
 
+    sort_option = request.args.get('sort', 'most_recent')
+    if sort_option == 'most_viewed':
+        ideas = Ideas.query.order_by(Ideas.view_count.desc()).paginate(page=page, per_page=5)
+    elif sort_option == 'most_liked':
+        ideas = Ideas.query.order_by(Ideas.like.desc()).paginate(page=page, per_page=5)
+    else:
+        ideas = Ideas.query.order_by(Ideas.time.desc()).paginate(page=page, per_page=5)
+
     likes = Like.query.filter_by(status=1).all()
     dislikes = Like.query.filter_by(status=-1).all()
     like_list = {}
     dislike_list = {}
+
 
     for lik in likes:
         like_list[lik.idea_id] = lik.staff_id

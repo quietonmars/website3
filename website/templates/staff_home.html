@@ -4,6 +4,17 @@
 
 <h1 align="center">Ideas</h1>
 <link rel="stylesheet" href="/static/ideas.css"/>
+
+    <form method="get">
+        <label for="sort">Sort by:</label>
+        <select name="sort" id="sort">
+            <option value="most_viewed">Most Viewed</option>
+            <option value="most_liked">Most Liked</option>
+            <option value="most_recent" selected>Most Recent</option>
+        </select>
+        <input type="submit" value="Sort" class="btn btn-primary">
+    </form>
+
     <form method="POST">
       {% for idea in ideas.items %}
 
@@ -13,6 +24,7 @@
   <p>Category: {{ categories[idea.category] }}</p>
   <p>Department: {{ departments[idea.staff.department] }}</p>
   <p>Time: {{ idea.time.strftime('%Y-%b-%d %I:%M %p') }}</p>
+    <p>Views: {{ idea.view_count }}</p>
   <p>Document: <a href="/static/uploads/{{idea.document}}">{{ idea.document }}</a></p>
   <p>
     <div class="button-wrapper">
@@ -43,7 +55,6 @@
             {{ idea.dislike }} <i class="fa fa-thumbs-down" aria-hidden="true"></i>
             </button>
             {% endif %}
-
         </form>
 
     </div>
