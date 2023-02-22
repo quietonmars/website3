@@ -37,6 +37,7 @@ class Staff(db.Model, UserMixin):
 class Category(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150))
+    idea = db.relationship('Ideas')
    # idea = db.relationship('Ideas', backref="category")
 
 

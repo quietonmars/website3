@@ -1,7 +1,9 @@
 import sqlite3
 from datetime import datetime, timedelta
+import csv
 
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+
+from flask import Blueprint, render_template, request, flash, redirect, url_for, make_response
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -59,7 +61,7 @@ def admin_login():
             if check_password_hash(admin.password, password):
                 flash('Logged In Successfully!', category='success')
                 login_user(admin, remember=True)
-
+                # admin_context
                 return redirect(url_for('auth.admin_home'))
             else:
                 flash('Incorrect Password. Please try again.', category='error')
@@ -68,6 +70,12 @@ def admin_login():
 
     return render_template("admin_login.html", user=current_user)
 
+
+# @auth.context_processor
+# def admin_context():
+#     admin = Admin.query.filter_by(id=current_user.id).first()
+#     return dict(admin=admin)
+#
 
 @auth.route('/admin-logout')
 @login_required
@@ -432,6 +440,69 @@ def manage_ideas():
     return render_template("manage_ideas.html", settings=settings, ideas=ideas, user=current_user,
                            categories=category_list, departments=department_list)
 
+
+@auth.route('/no_comment_report')
+def generate_report_NoComment():
+    ideas = Ideas.query.filter_by(comment_count=0).all()
+
+    # categories = Category.query.all()
+    # category_list = {}
+    # for cat in categories:
+    #     if cat.name:
+    #         category_list[cat.id] = cat.name
+    #
+    # categories = category_list
+    # print(categories)
+
+    # # categories[ideas.category]
+    # # print(categories)
+
+    file_contents = "Ideas Without Comment\n"
+    file_contents += "Staff Name,Idea Title,Description,Category,Posted Date,Like Count,Dislike Count,Comment Count\n"
+    for idea in ideas:
+        file_contents += f"{idea.staff.name},{idea.title},{idea.description},{idea.category},{idea.time},{idea.like},{idea.dislike},{idea.comment_count}\n"
+
+    current_datetime = datetime.now()
+    current_date = current_datetime.strftime('%Y-%b-%d %I:%M %p')
+    response = make_response(file_contents)
+    response.headers["Content-Disposition"] = f"attachment; filename=NoCommentReport_{current_date}.csv"
+    response.headers["Content-type"] = "text/csv"
+
+    return response
+
+
+@auth.route('/anon_report')
+def generate_report_Anon():
+    ideas = Ideas.query.filter_by(anon=1).all()
+    comments = Comments.query.filter_by(anon=1).all()
+
+    #
+    # with open('AnonymousReport.csv', mode='w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow(["Staff Name,Idea Title,Description,Category,Posted Date,Like Count,Dislike Count,Comment Count"])
+    #
+    #     for idea in ideas:
+    #         writer.writerow([idea.staff.name, idea.title, idea.description, idea.category, idea.time, idea.like, idea.dislike, idea.comment_count])
+
+    file_contents = "Anonymous Ideas\n"
+    file_contents += "Staff Name,Idea Title,Description,Category,Posted Date,Like Count,Dislike Count,Comment Count\n"
+    for idea in ideas:
+        file_contents += f"{idea.staff.name},{idea.title},\"{idea.description}\",{idea.category},{idea.time},{idea.like},{idea.dislike},{idea.comment_count}\n"
+
+    file_contents += "\n"
+
+    file_contents += "Anonymous Comments\n"
+    file_contents += "Idea Name, Staff Name, Comment, Posted Date\n"
+    for comment in comments:
+        file_contents += f"{idea.title},{idea.staff.name},\"{comment.description}\",{comment.time}\n"
+
+    current_datetime = datetime.now()
+    current_date = current_datetime.strftime('%Y-%b-%d %I:%M %p')
+    response = make_response(file_contents)
+    response.headers["Content-Disposition"] = f"attachment; filename=AnonymousReport_{current_date}.csv"
+    response.headers["Content-type"] = "text/csv"
+
+    return response
 
 @auth.route('/idea/<int:idea_id>', methods=['GET', 'POST'])
 @login_required
