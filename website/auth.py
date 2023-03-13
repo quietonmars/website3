@@ -4,7 +4,7 @@ import csv
 
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, make_response
-from flask_login import login_user, login_required, logout_user, current_user
+from flask_login import login_user, login_required, logout_user, current_user, LoginManager, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from sqlalchemy import create_engine, text
@@ -21,6 +21,7 @@ from email.message import EmailMessage
 
 conn = sqlite3.connect('././instance/database.db', check_same_thread=False)
 conn.execute("PRAGMA busy_timeout = 5000")
+SQLALCHEMY_ENGINE_OPTIONS = {"pool_timeout": 30}
 
 auth = Blueprint('auth', __name__)
 
@@ -29,6 +30,16 @@ conn.row_factory = sqlite3.Row
 engine = create_engine('sqlite:///database.db')
 conn = engine.connect()
 
+
+login_manager = LoginManager()
+
+@login_manager.user_loader
+def load_user(user_id):
+    user = Admin.query.get(int(user_id))
+    if user:
+        return user
+    else:
+        return None
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
@@ -59,10 +70,21 @@ def admin_login():
         admin = Admin.query.filter_by(username=username).first()
         if admin:
             if check_password_hash(admin.password, password):
-                flash('Logged In Successfully!', category='success')
-                login_user(admin, remember=True)
-                # admin_context
-                return redirect(url_for('auth.admin_home'))
+                if admin.status == 'approved':
+                    flash('Logged In Successfully!', category='success')
+                    print("Before login_user")
+                    login_user(admin, remember=True)
+
+                    if admin.type == 'QAC':
+                        flash('QAC login', category='success')
+                    elif admin.type == 'SA':
+                        flash('Superadmin login', category='success')
+                    elif admin.type == 'QAM':
+                        flash('QAM login', category='success')
+
+                    return redirect(url_for('auth.admin_home'))
+                else:
+                    flash('Your account needs to be approved to login.', category='error')
             else:
                 flash('Incorrect Password. Please try again.', category='error')
         else:
@@ -138,7 +160,10 @@ def sign_up():
 def profile():
     if request.method == 'POST':
         user = Staff.query.filter_by(id=current_user.id).first()
-    return render_template("profile.html", user=current_user)
+    else:
+        user = current_user
+    department_name = Department.query.join(Staff).filter_by(id=user.id).first().name
+    return render_template("profile.html", user=user, department_name=department_name)
 
 
 @auth.route('/admin-home', methods=['GET', 'POST'])
@@ -174,10 +199,13 @@ def admin_home():
 def add_idea():
     q = Category.query.all()
     categories = q
-
-    latest_settings = Settings.query.order_by(Settings.saved_date.desc()).first()
-    latest_closure_date = latest_settings.closure_date
-    print(latest_closure_date)
+    try:
+        latest_settings = Settings.query.order_by(Settings.saved_date.desc()).first()
+        latest_closure_date = latest_settings.closure_date
+        print(latest_closure_date)
+    except:
+        flash('Ideas cannot be posted in the meantime. Closure Dates are not set up yet.', category='error')
+        return redirect(url_for('views.home'))
 
     if request.method == 'POST':
 
@@ -227,13 +255,24 @@ def add_idea():
                                  view_count=0, comment_count=0)
                 db.session.add(new_idea)
                 db.session.commit()
-                QAM = Admin.query.filter_by(type='QAM').first()
 
-                to = QAM.email
+                # staff = Staff.query.all()
+                department = Department.query.get(current_user.department)
+                if department is None:
+                    flash('You have no department assigned', category='error')
+                    return redirect(url_for('auth.add_idea'))
+
+                depQAC = Admin.query.filter_by(department=department, type='QAC').first()
+                if depQAC is None:
+                    flash('There is no QAC admin assigned to your department', category='error')
+                    return redirect(url_for('auth.add_idea'))
+                print(depQAC)
+
+                to = depQAC.email
                 print(to)
 
                 subject = current_user.name + " posted an Idea"
-                body = "Hi " + QAM.name + "," + "\n\n\n" + current_user.name + " has posted an Idea. \n\n\n" + "Idea Title: " + title + "\n\n\n" + "Idea Description: " + description +"\n\n\n\n Best Regards, \n Sigma Team"
+                body = "Hi " + depQAC.name + "," + "\n\n\n" + current_user.name + " has posted an Idea. \n\n\n" + "Idea Title: " + title + "\n\n\n" + "Idea Description: " + description +"\n\n\n\n Best Regards, \n Sigma Team"
                 send_email(to, subject, body)
                 print(to, subject, body)
 
@@ -243,13 +282,16 @@ def add_idea():
 
 
 @auth.route('/add-new-admin', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def new_admin():
+    q = Department.query.all()
+    departments = q
     if request.method == 'POST':
         name = request.form.get('name')
         nric = request.form.get('nrc')
         type = request.form.get('type')
         email = request.form.get('email')
+        admin_department = request.form.get('dpt')
         phone_no = request.form.get('phone')
         address = request.form.get('address')
         username = request.form.get('username')
@@ -271,14 +313,14 @@ def new_admin():
         elif len(password1) < 7:
             flash('Password must be at least 7 characters', category='error')
         else:
-            new_admin = Admin(name=name, nrc=nric, type=type, email=email, phone_no=phone_no, address=address,
-                              username=username, password=generate_password_hash(password1, method='sha256'))
+            new_admin = Admin(name=name, nrc=nric, type=type, email=email,phone_no=phone_no, address=address,
+                              username=username, password=generate_password_hash(password1, method='sha256'),department_id=admin_department,status="pending")
             db.session.add(new_admin)
             db.session.commit()
 
-            flash('Admin Account Created Successfully', category='success')
-            return redirect(url_for('auth.manage_admin'))
-    return render_template("new_admin.html", user=current_user)
+            flash('Admin Account Created. Please wait for account to be reviewed and approved.', category='success')
+            return redirect(url_for('auth.admin_login'))
+    return render_template("new_admin.html", user=current_user, departments=departments)
 
 
 @auth.route('/manage-admin')
@@ -286,8 +328,42 @@ def new_admin():
 def manage_admin():
     q = Admin.query.all()
     admins = q
+    departments = Department.query.all()
 
-    return render_template("manage_admin.html", admins=admins, user=current_user)
+    return render_template("manage_admin.html", admins=admins, user=current_user, departments=departments)
+
+
+@auth.route('/admin/status/<int:id>/<string:status>')
+def confirm_admin_status(id, status):
+    admin = Admin.query.get_or_404(id)
+
+    if admin.status == status:
+        flash(f"Admin status already set to {status}", category="info")
+        return redirect(url_for('auth.manage_admin'))
+
+    if status == 'pending':
+        return redirect(url_for('auth.admin_home'))
+
+    if request.args.get('confirm') == 'true':
+        admin.status = status
+        db.session.commit()
+
+        if status == 'approved':
+            flash('Admin approved', category='success')
+        elif status == 'rejected':
+            flash('Admin rejected', category='warning')
+    else:
+        print('Change status canceled')
+
+    return f"""
+        <script>
+            if ('{admin.status}' !== '{status}' && confirm('Are you sure you want to change the status of admin {admin.name} to {status}?')) {{
+                window.location = '{url_for('auth.confirm_admin_status', id=id, status=status, confirm='true')}';
+            }} else {{
+                window.location = '{url_for('auth.manage_admin')}';
+            }}
+        </script>
+    """
 
 
 @auth.route('/manage-staff')
@@ -311,6 +387,7 @@ def category():
         db.session.add(new_category)
         db.session.commit()
         flash('New Category Added Successfully', category='success')
+        return redirect(url_for('auth.category', user=current_user))  # reload the page
 
     return render_template("category.html", category=category, categories=categories,
                            user=current_user)
@@ -395,6 +472,8 @@ def department():
         db.session.add(new_department)
         db.session.commit()
         flash('New Department Added Successfully', category='success')
+        return redirect(url_for('auth.department', user=current_user))
+
 
     # Render the template, passing in the required data
     return render_template("department.html", user=current_user, departments=departments,
@@ -614,8 +693,17 @@ def idea_detail(idea_id):
                 db.session.commit()
 
                 to = idea.staff.email
-                subject = current_user.name + " commented on your post!"
-                body = "Hi " + idea.staff.name +",\n We would like to inform u that " + current_user.name + " has comment on your post.\n\n Comment:\n\n" + description +"\n \n Best Regards, \n Sigma Team"
+
+                if anon == 1:
+                    subject = "Anonymous Staff commented on your post!"
+                    staffname = "Anonymous Staff"
+                else:
+                    subject = current_user.name + " commented on your post!"
+                    staffname = current_user.name
+
+                
+
+                body = "Hi " + idea.staff.name +",\n We would like to inform u that " + staffname + " has comment on your post.\n\n Comment:\n\n" + description +"\n \n Best Regards, \n Sigma Team"
                 send_email(to,subject,body)
                 print(to,subject,body)
 
@@ -684,8 +772,10 @@ def setting():
             db.session.add(new_setting)
             db.session.commit()
             flash('Settings Saved Successfully', category='success')
+            return redirect(url_for('auth.setting', user=current_user))
 
     return render_template("setting.html", settings=settings, user=current_user)
+
 
 
 def send_email(to, subject, body):

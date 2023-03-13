@@ -8,6 +8,7 @@ class Department(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150))
     staff = db.relationship('Staff')
+    admin = db.relationship('Admin', backref='department')
 
 
     def add_idea(self):
@@ -51,15 +52,32 @@ class Admin(db.Model, UserMixin):
     address = db.Column(db.String(255))
     username = db.Column(db.String(150))
     password = db.Column(db.String(150))
+    department_id = db.Column(db.Integer, db.ForeignKey('department.id'))
+    # department = db.relationship('Department')
+    status = db.Column(db.String(150))
     notification = db.relationship('Notifications')
     setting = db.relationship('Settings')
+
+
+# class Admin(db.Model, UserMixin):
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String(150))
+#     nrc = db.Column(db.String(150))
+#     type = db.Column(db.String(150))
+#     email = db.Column(db.String(150), unique=True)
+#     phone_no = db.Column(db.String(150))
+#     address = db.Column(db.String(255))
+#     username = db.Column(db.String(150))
+#     password = db.Column(db.String(150))
+#     notification = db.relationship('Notifications')
+#     setting = db.relationship('Settings')
 
 
 class Notifications(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'))
     staff_id = db.Column(db.Integer, db.ForeignKey('staff.id'))
-    # email =
+    email = db.Column(db.String(150))
     date = db.Column(db.DateTime(timezone=True), default=func.now())
     status = db.Column(db.String(30))
 
@@ -70,7 +88,7 @@ class Settings(db.Model, UserMixin):
     start_date = db.Column(db.DateTime)
     closure_date = db.Column(db.DateTime)
     final_date = db.Column(db.DateTime)
-    saved_date = db.Column(db.DateTime)
+    saved_date = db.Column(db.DateTime) 
 
 
 class Ideas(db.Model, UserMixin):

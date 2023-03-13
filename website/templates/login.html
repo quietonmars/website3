@@ -7,7 +7,7 @@
 <body style="background-color: #130f40; color: whitesmoke">
 <div class="row justify-content-center align-items-center h-100">
     <form class="col-10 col-md-6 col-lg-4" method="POST">
-        <h2 class="mb-4 text-center">Login</h2>
+        <h2 class="mb-4 text-center">Staff Login</h2>
         <div class="form-group">
             <label for="username">Username</label>
             <input type="username" class="form-control" id="username" name="username" placeholder="Enter Username" />
@@ -19,6 +19,8 @@
         <div class="mt-4">
             <button type="submit" class="btn btn-primary mr-3">Login</button>
             <a href="{{ url_for('auth.sign_up') }}" class="btn btn-outline-primary">Sign Up</a>
+            <br><br>
+                <a href="{{ url_for('auth.admin_login') }}">For Admin Staffs</a>
         </div>
     </form>
 </div>

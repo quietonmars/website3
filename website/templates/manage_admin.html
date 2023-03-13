@@ -17,10 +17,12 @@
                 <th>NRC</th>
                 <th>Type</th>
                 <th>Email</th>
+                <th>Department</th>
                 <th>Phone No.</th>
                 <th>Address</th>
                 <th>Username</th>
                 <th>Password</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody>
@@ -31,15 +33,24 @@
                 <td>{{ admin.nrc }}</td>
                 <td>{{ admin.type }}</td>
                 <td>{{ admin.email }}</td>
+                <td>{{ admin.department.name }}</td>
                 <td>{{ admin.phone_no }}</td>
                 <td>{{ admin.address }}</td>
                 <td>{{ admin.username }}</td>
                 <td>*******</td>
+                <td>
+                    {% if admin.status == 'pending' %}
+                    <a href="{{ url_for('auth.confirm_admin_status', id=admin.id, status='approved') }}" class="btn btn-sm btn-primary">Approve</a>
+                    <a href="{{ url_for('auth.confirm_admin_status', id=admin.id, status='rejected') }}" class="btn btn-sm btn-warning">Reject</a>
+                    {% else %}
+                        {{ admin.status }}
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    <a href="{{ url_for('auth.new_admin') }}" class="btn btn-primary">Add New Admin</a>
+    <!-- <a href="{{ url_for('auth.new_admin') }}" class="btn btn-primary">Add New Admin</a> -->
 </div>
 
 </body>

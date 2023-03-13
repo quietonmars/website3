@@ -1,0 +1,23 @@
+{% extends 'base2.html' %}
+{% block content %}
+    <h1>{{ title }}</h1>
+    <form method="POST">
+        {{ form.csrf_token }}
+        <div class="form-group row">
+            <label for="start_d" class="col-sm-3 col-form-label">Add New Start Date</label>
+            <div class="col-sm-9">
+                {{ form.start_d(class="form-control", placeholder="Enter Start Date") }}
+            </div>
+        </div>
+        <br />
+        <div class="form-group row">
+            <label for="new_closure_d" class="col-sm-3 col-form-label">Add New Closure Date</label>
+            <div class="col-sm-9">
+                {{ form.new_closure_d(class="form-control", placeholder="Enter Closure Date") }}
+            </div>
+        </div>
+        <br />
+        <div class="form-group row">
+            <label for="final_closure_d" class="col-sm-3 col-form-label">Add Final Closure Date</label>
+            <div class="col-sm-9">
+               

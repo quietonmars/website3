@@ -22,30 +22,60 @@
         <div class="collapse navbar-collapse" id="navbar">
             <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link" id="home" href="/admin-home">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="manage_staff" href="/manage-staff">Manage Staff</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="manage_admin" href="/manage-admin">Manage Admin</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="department" href="/department">View Departments</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="category" href="/category">Manage Category</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="reports" href="/manage-ideas">Manage Ideas</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="setting" href="/setting">System Settings</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="logout" href="/admin-logout">Logout</a>
-                </li>
+
+                    {% if current_user.type == 'QAC' %}
+                        <li class="nav-item">
+                            <a class="nav-link" id="home" href="/admin-home">Home</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" id="department" href="/department">View Departments</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" id="logout" href="/admin-logout">Logout</a>
+                        </li>
+                    {% else %}
+                        {% if current_user.type == 'QAM' %}
+                            <li class="nav-item">
+                                <a class="nav-link" id="home" href="/admin-home">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="department" href="/department">View Departments</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="category" href="/category">Manage Category</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="reports" href="/manage-ideas">Manage Ideas</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="manage_admin" href="/manage-admin">Manage Admin</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="logout" href="/admin-logout">Logout</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" id="home" href="/admin-home">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="manage_staff" href="/manage-staff">Manage Staff</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="department" href="/department">View Departments</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="manage_admin" href="/manage-admin">Manage Admin</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="setting" href="/setting">System Settings</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="logout" href="/admin-logout">Logout</a>
+                            </li>
+                            {% endif %}
+                    {% endif %}
 
                 {% else %}
                 <li class="nav-item">
